@@ -7,10 +7,9 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 
-
 os.getenv("OPENAI_API_KEY")
 
-global convo
+global convo, messages
 app = Flask(__name__, template_folder='templates')
 with urlopen("https://dummyjson.com/products?limit=10") as response:
     source = response.read()
@@ -27,21 +26,27 @@ first_input = "Hi there! You are ProductBot, representing RangEmUp.com. Your exp
     str(products) + ". Our inventory is limited to the listed products."
 print(str(len(products)))
 convo = conversation.predict(input=first_input)
-
+messages = []
 
 @app.route("/")
 def hello_world():
     return render_template('index.html')
 
-
 @app.route("/chat", methods=['POST'])
 def chat():
-    global convo
-    response = {'convo': conversation.predict(input=request.json['chat'])}
+    global convo, messages
+    message = request.json['chat']
+    messages.append(message)
+    response = {'convo': conversation.predict(input=message)}
     return jsonify(response)
 
+@app.route("/disconnect")
+def disconnect():
+    global messages
+    prompt = "Please summarize the conversation in a conversational way. The conversation was: " + str(messages)
+    summary = conversation.predict(input=prompt)
+    messages = []
+    return jsonify({'summary': summary})
 
 if __name__ == '__main__':
     app.run(debug=True, PORT=os.getenv("PORT", default=5000))
-
-
