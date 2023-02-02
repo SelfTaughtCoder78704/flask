@@ -28,9 +28,11 @@ print(str(len(products)))
 convo = conversation.predict(input=first_input)
 messages = []
 
+
 @app.route("/")
 def hello_world():
     return render_template('index.html')
+
 
 @app.route("/chat", methods=['POST'])
 def chat():
@@ -40,13 +42,16 @@ def chat():
     response = {'convo': conversation.predict(input=message)}
     return jsonify(response)
 
+
 @app.route("/disconnect")
 def disconnect():
     global messages
-    prompt = "Please summarize the conversation in a conversational way. The conversation was: " + str(messages)
+    prompt = "Please summarize the conversation in a conversational way. The conversation was: " + \
+        str(messages)
     summary = conversation.predict(input=prompt)
     messages = []
     return jsonify({'summary': summary})
+
 
 if __name__ == '__main__':
     app.run(debug=True, PORT=os.getenv("PORT", default=5000))
